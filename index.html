@@ -13,14 +13,14 @@
     <div id="opciones-container">
       <div id="opciones">
         <div class="buttoncontainer">
-          <button class="btn" onclick="ajustarJugador()" id="botonJugador">Ajustar Jugador</button>
+          <button class="btn" onclick="ajustarJugador(0)" id="botonJugador">Ajustar Jugador</button>
         </div>
         <div class="buttoncontainer">
-          <button class="btn" onclick="ajustarCasa()" id="botonCasa">Ajustar Casa</button>
+          <button class="btn" onclick="ajustarJugador(1)" id="botonCasa">Ajustar Casa</button>
         </div>
         <div class="slidecontainer">
-          <input type="range" min="15" max="150" value="15" class="slider" id="tamMapa">
-          <p>Tamaño del mapa: <b id="tamMapaText">15</b> bloques</p>
+          <input type="range" min="5" max="150" value="5" class="slider" id="tamMapa">
+          <p>Tamaño del mapa: <b id="tamMapaText">5</b> bloques</p>
         </div>
         <div class="slidecontainer">
           <input type="range" min="20" max="80" value="25" class="slider" id="obstaculos">

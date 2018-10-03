@@ -7,27 +7,50 @@
     <title>Mundo de Fantasia</title>
   </head>
   <body>
-    <div id="mapa">
-      <canvas id="canvas" width="600" height="600"></canvas>
-    </div>
-    <div id="opciones-container">
-      <div id="opciones">
+    <div class="opciones-container">
+      <div class="opciones">
         <div class="buttoncontainer">
-          <button class="btn" onclick="ajustarJugador(0)" id="botonJugador">Ajustar Jugador</button>
+          <button class="btn" onclick="ajustarJugador(3)" id="botonJugador">Salida Agentes</button>
         </div>
         <div class="buttoncontainer">
-          <button class="btn" onclick="ajustarJugador(1)" id="botonCasa">Ajustar Casa</button>
+          <button class="btn" onclick="ajustarJugador(4)" id="botonCasa">Ajustar Casa</button>
         </div>
         <div class="slidecontainer">
           <input type="range" min="5" max="150" value="5" class="slider" id="tamMapa">
           <p>Tamaño del mapa: <b id="tamMapaText">5</b> bloques</p>
         </div>
         <div class="slidecontainer">
-          <input type="range" min="20" max="80" value="25" class="slider" id="obstaculos">
-          <p>Obstaculos: <b id="obsText">25</b>%</p>
+          <input type="range" min="0" max="20" value="5" class="slider" id="obstaculos">
+          <p>Obstaculos: <b id="obsText">5</b>%</p>
+        </div>
+        <div class="slidecontainer">
+          <input type="range" min="0" max="20" value="0" class="slider" id="agua">
+          <p>Agua: <b id="aguaText">0</b>%</p>
+        </div>
+        <div class="slidecontainer">
+          <input type="range" min="0" max="20" value="0" class="slider" id="montes">
+          <p>Montañas: <b id="monteText">0</b>%</p>
+        </div>
+        <div class="slidecontainer">
+          <input type="range" min="0" max="20" value="0" class="slider" id="barrancos">
+          <p>Barrancos: <b id="barrancoText">0</b>%</p>
         </div>
         <div class="buttoncontainer">
           <button class="btn" onclick="ajustarMapa()" id="botonAjustar">Ajustar Mapa</button>
+        </div>
+      </div>
+    </div>
+    <div id="mapa">
+      <canvas id="canvas" width="600" height="600"></canvas>
+    </div>
+    <div class="opciones-container">
+      <div class="opciones">
+        <div class="slidecontainer">
+          <input type="range" min="1" max="5000" value="1" class="slider" id="training">
+          <p>Cantidad de entrenamientos: <b id="trainText">1</b></p>
+        </div>
+        <div class="buttoncontainer">
+          <button class="btn" onclick="entrenar()" id="botonEntrenar">Entrenar</button>
         </div>
       </div>
     </div>

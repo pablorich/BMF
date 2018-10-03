@@ -126,6 +126,42 @@ class Agente{
   }
 }
 
+class Entrenador{
+  constructor(){
+    this.trainingMode = false;
+  }
+
+  startTraining(num, x, y){
+    this.trainingMode = true;
+    this.entrenamientos = num;
+    this.inicio_x = x;
+    this.inicio_y = y;
+    this.running = 0;
+    this.vuelta = 0;
+    this.setRunning();
+  }
+
+  setRunning(){
+    jugadores[this.running].pos_x = this.inicio_x;
+    jugadores[this.running].pos_y = this.inicio_y;
+    jugadores[this.running].ultimaPosicion = {x: this.inicio_x, y: this.inicio_y};
+    jugadores[this.running].state = 'set';
+  }
+
+  continueTraining(){
+    this.vuelta +=1;
+    if (this.vuelta == this.entrenamientos) {
+      this.vuelta = 0;
+      this.running +=1;
+      console.log(this.running);
+      if (this.running > 2) {
+        this.trainingMode = false;
+      }
+    }
+    this.setRunning();
+  }
+}
+
 var selected;
 const jugadores = [];
 jugadores.push(new Agente('./images/crystal.png', 2.5, 0.3, 1.0, 1.5));//Mombo
@@ -135,6 +171,7 @@ jugadores.push(new Agente('./images/base.png', 1.0, 1.5, 2.5, 0.3));//Test
 
 var casa = new Agente('./images/casa.png');
 var jugador = new Agente('./images/hermit.png', 1.0, 1.5, 2.5, 0.3);//Test
+const entrenador = new Entrenador();
 
 //Funcionalidades
 function createMatrix(w, h){ //Crea una matriz vacia del tamaño del mapa
@@ -236,27 +273,33 @@ function drawMap(){
 }
 
 let contadorMovimiento = 0;
-let intervaloMovimiento = 500;
+let intervaloMovimiento = 0;
 let lastTime = 0;
-let running = 0;
+
 function updateMap(time = 0){
   const deltaTime = time - lastTime;
   lastTime = time;
   contadorMovimiento += deltaTime;
   if (contadorMovimiento > intervaloMovimiento) {
-    if (running < 3 && running >= 0) {
-      if (jugadores[running].state === 'set' && casa.state === 'set') {
-        if (!(jugadores[running].pos_x === casa.pos_x && jugadores[running].pos_y === casa.pos_y)) {
-          jugadores[running].moveJugador();
+    if (entrenador.trainingMode) {
+      if (entrenador.running < 3 && entrenador.running >= 0) {
+        if (jugadores[entrenador.running].state === 'set' && casa.state === 'set') {
+          if (!(jugadores[entrenador.running].pos_x === casa.pos_x && jugadores[entrenador.running].pos_y === casa.pos_y)) {
+            jugadores[entrenador.running].moveJugador();
+            if (jugadores[entrenador.running].pos_x === casa.pos_x && jugadores[entrenador.running].pos_y === casa.pos_y) {
+              entrenador.continueTraining();
+            }
+          }
         }
       }
     }
+
     contadorMovimiento = 0;
   }
   drawMap();
-  // jugador.draw();
+  jugadores[3].draw();
   casa.draw();
-  for (var i = 0; i < 4; i++) {
+  for (var i = 0; i < 3; i++) {
     jugadores[i].draw();
   }
   requestAnimationFrame(updateMap);
@@ -360,6 +403,9 @@ function setPlayer(){
 function entrenar(){
   if (jugadores[3].state == 'set' && casa.state == 'set') {
     for (var i = 0; i < 3; i++) {
+      if (i!=0) {
+        jugadores[i-1].state = 'unset';
+      }
       jugadores[i].pos_x = jugadores[3].pos_x;
       jugadores[i].pos_y = jugadores[3].pos_y;
       jugadores[i].state = 'set';
@@ -367,11 +413,16 @@ function entrenar(){
       while (!(jugadores[i].pos_x === casa.pos_x && jugadores[i].pos_y === casa.pos_y)) {
         jugadores[i].moveJugador();
         if ((jugadores[i].pos_x === casa.pos_x && jugadores[i].pos_y === casa.pos_y)) {
-          console.log(jugadores[i].pos_x, jugadores[i].pos_y);          
+          console.log("llego un personaje");
         }
       }
     }
-    running = 0;
+  }
+}
+
+function entrenarVisual(){
+  if (jugadores[3].state == 'set' && casa.state == 'set') {
+    entrenador.startTraining(Number(cantTrain.value), jugadores[3].pos_x, jugadores[3].pos_y);
   }
 }
 

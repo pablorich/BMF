@@ -16,7 +16,7 @@
           <button class="btn" onclick="ajustarJugador(4)" id="botonCasa">Ajustar Casa</button>
         </div>
         <div class="slidecontainer">
-          <input type="range" min="5" max="150" value="5" class="slider" id="tamMapa">
+          <input type="range" min="5" max="30" value="5" class="slider" id="tamMapa">
           <p>Tamaño del mapa: <b id="tamMapaText">5</b> bloques</p>
         </div>
         <div class="slidecontainer">
@@ -50,7 +50,10 @@
           <p>Cantidad de entrenamientos: <b id="trainText">1</b></p>
         </div>
         <div class="buttoncontainer">
-          <button class="btn" onclick="entrenar()" id="botonEntrenar">Entrenar</button>
+          <button class="btn" onclick="entrenar()" id="botonEntrenar">Entrenar Rapido</button>
+        </div>
+        <div class="buttoncontainer">
+          <button class="btn" onclick="entrenarVisual()" id="botonEntrenar">Entrenar y Ver</button>
         </div>
       </div>
     </div>

@@ -47,7 +47,7 @@
       <div class="opciones">
         <div class="slidecontainer">
           <input type="range" min="1" max="5000" value="1" class="slider" id="training">
-          <p>Cantidad de entrenamientos: <b id="trainText">1</b></p>
+          <p id="trainTextContext">Cantidad de entrenamientos: <b id="trainText">1</b></p>
         </div>
         <div class="buttoncontainer">
           <button class="btn" onclick="entrenar()" id="botonEntrenar">Entrenar Rapido</button>
@@ -56,13 +56,13 @@
           <button class="btn" onclick="entrenarVisual()" id="botonEntrenarVisual">Entrenar y Ver</button>
         </div>
         <div class="buttoncontainer">
-          <button class="btn" onclick="" id="botonMombo">Mombo</button>
+          <button class="btn" onclick="ajustarJugador(0)" id="botonMombo" hidden>Mombo</button>
         </div>
         <div class="buttoncontainer">
-          <button class="btn" onclick="" id="botonPirolo">Pirolo</button>
+          <button class="btn" onclick="ajustarJugador(1)" id="botonPirolo" hidden>Pirolo</button>
         </div>
         <div class="buttoncontainer">
-          <button class="btn" onclick="" id="botonLucas">Lucas</button>
+          <button class="btn" onclick="ajustarJugador(2)" id="botonLucas" hidden>Lucas</button>
         </div>
       </div>
     </div>

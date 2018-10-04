@@ -56,6 +56,7 @@ imgPared.src = './images/brick.png';
 var scaling = width/tamFila;
 var cantCeldas = tamFila*tamFila;
 var mapa = [];
+var grafo;
 
 //Agentes
 class Agente{
@@ -87,37 +88,40 @@ class Agente{
   moveJugador(){
     if(!(this.pos_x === casa.pos_x && this.pos_y === casa.pos_y)) {
       let posicionesDisponibles = [];
-      for (var i = this.pos_x-1; i <= this.pos_x +1; i++) {
-        for (var j = this.pos_y-1; j <= this.pos_y+1; j++) {
-          if (i >= 0 && i < tamFila && j >= 0 && j < tamFila) {
-            if (!(i === this.pos_x && j === this.pos_y)) {
-              if (!(i === this.ultimaPosicion.x && j === this.ultimaPosicion.y)) {
-                if (mapa[i][j] !== 1) {
-                  posicionesDisponibles.push({x:i,y:j});
-                }
-              }
-            }
-          }
-        }
-      }
-      if (posicionesDisponibles.length === 0) {
-        if (mapa[this.ultimaPosicion.x][this.ultimaPosicion.y] !== 1) {
-          if (!(this.pos_x === this.ultimaPosicion.x && this.pos_y === this.ultimaPosicion.y)) {
-            let temp = {x:this.pos_x, y: this.pos_y};
-            this.pos_x = this.ultimaPosicion.x;
-            this.pos_y = this.ultimaPosicion.y;
-            this.ultimaPosicion = temp;
-          }
-          else {
-            this.state = 'unset';
-          }
+      // for (var i = this.pos_x-1; i <= this.pos_x +1; i++) {
+      //   for (var j = this.pos_y-1; j <= this.pos_y+1; j++) {
+      //     if (i >= 0 && i < tamFila && j >= 0 && j < tamFila) {
+      //       if (!(i === this.pos_x && j === this.pos_y)) {
+      //         if (!(i === this.ultimaPosicion.x && j === this.ultimaPosicion.y)) {
+      //           if (mapa[i][j] !== 1) {
+      //             posicionesDisponibles.push({x:i,y:j});
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
+      posicionesDisponibles = grafo.listaAdy[(this.pos_x*tamFila)+this.pos_y].connections.slice();
+      if (posicionesDisponibles.length === 1) {
+        if (!(this.pos_x === this.ultimaPosicion.x && this.pos_y === this.ultimaPosicion.y)) {
+          let temp = {x:this.pos_x, y: this.pos_y};
+          this.pos_x = this.ultimaPosicion.x;
+          this.pos_y = this.ultimaPosicion.y;
+          this.ultimaPosicion = temp;
         }
         else {
           this.state = 'unset';
         }
       }
       else {
-        let newPos = posicionesDisponibles[getRndInteger(0,posicionesDisponibles.length-1)]
+        let okay = false;
+        let newPos;
+        while (!okay) {
+          newPos = posicionesDisponibles[getRndInteger(0,posicionesDisponibles.length-1)]
+          if (!(newPos.x == this.ultimaPosicion.x && newPos.y == this.ultimaPosicion.y)) {
+            okay = true;
+          }
+        }
         this.ultimaPosicion = {x:this.pos_x, y: this.pos_y};
         this.pos_x = newPos.x;
         this.pos_y = newPos.y;
@@ -129,6 +133,7 @@ class Agente{
 class Entrenador{
   constructor(){
     this.trainingMode = false;
+    this.trained = false;
   }
 
   startTraining(num, x, y){
@@ -158,11 +163,50 @@ class Entrenador{
       this.running +=1;
       if (this.running > 2) {
         this.trainingMode = false;
+        this.trained = true;
+        document.getElementById('botonMombo').hidden = false;
+        document.getElementById('botonLucas').hidden = false;
+        document.getElementById('botonPirolo').hidden = false;
         enableInput();
       }
     }
     this.setRunning();
   }
+}
+
+class Grafo{
+  constructor(map){
+    this.listaAdy = [];
+    for (var i = 0; i < map.length; i++) {
+      for (var j = 0; j < map[i].length; j++) {
+        let conn = [];
+        if (map[i][j] !== 1) {
+          //Calcula las posiciones disponibles a las que se puede llegar desde este nodo
+          for (var k = i-1; k <= i+1; k++) {
+            for (var l = j-1; l <= j+1; l++) {
+              if (k >= 0 && k < tamFila && l >= 0 && l < tamFila) {
+                if (!(k === i && l === j)) {
+                  if (mapa[k][l] !== 1) {
+                    conn.push({x:k,y:l});
+                  }
+                }
+              }
+            }
+          }
+        }
+        //Agrega a la lista un nodo con la posicion del mismo y un arreglo de posiciones disponibles
+        this.listaAdy.push({
+          x: i,
+          y: j,
+          connections: conn.slice(),
+          pond: [Number.MAX_SAFE_INTEGER/2, Number.MAX_SAFE_INTEGER/2, Number.MAX_SAFE_INTEGER/2]
+        })
+        //
+      }
+    }
+  }
+
+
 }
 
 var selected;
@@ -247,6 +291,7 @@ function ajustarMapa(){ //Prepara valores para generar mapa
     jugadores[i].state = 'unset';
   }
   createMap();
+  grafo = new Grafo(mapa);
 }
 
 function drawMap(){
@@ -274,7 +319,7 @@ function drawMap(){
 }
 
 let contadorMovimiento = 0;
-let intervaloMovimiento = 0;
+let intervaloMovimiento = 1000;
 let lastTime = 0;
 
 function updateMap(time = 0){
@@ -294,11 +339,27 @@ function updateMap(time = 0){
         }
       }
     }
+    else {
+      if (entrenador.trained) {
+        for (var i = 0; i < 3; i++) {
+          if (jugadores[i].state == 'set') {
+            if (!(jugadores[i].pos_x === casa.pos_x && jugadores[i].pos_y === casa.pos_y)) {
+              jugadores[i].moveJugador();
+              if (jugadores[i].pos_x === casa.pos_x && jugadores[i].pos_y === casa.pos_y) {
+                jugadores[i].state = 'unset';
+              }
+            }
+          }
+        }
+      }
+    }
 
     contadorMovimiento = 0;
   }
   drawMap();
-  jugadores[3].draw();
+  if (!entrenador.trained) {
+    jugadores[3].draw();
+  }
   casa.draw();
   for (var i = 0; i < 3; i++) {
     jugadores[i].draw();
@@ -406,6 +467,11 @@ function setPlayer(){
 function entrenar(){
   disableInput();
   if (jugadores[3].state == 'set' && casa.state == 'set') {
+    document.getElementById('training').hidden = true;
+    document.getElementById('trainTextContext').hidden = true;
+    document.getElementById('trainText').hidden = true;
+    document.getElementById('botonEntrenar').hidden = true;
+    document.getElementById('botonEntrenarVisual').hidden = true;
     for (var i = 0; i < 3; i++) {
       for (var j = 0; j < Number(cantTrain.value); j++) {
         jugadores[i].pos_x = jugadores[3].pos_x;
@@ -421,16 +487,26 @@ function entrenar(){
         console.log(j);
       }
     }
+    document.getElementById('botonMombo').hidden = false;
+    document.getElementById('botonLucas').hidden = false;
+    document.getElementById('botonPirolo').hidden = false;
+    entrenador.trained = true;
   }
   enableInput();
 }
 
 function entrenarVisual(){
   if (jugadores[3].state == 'set' && casa.state == 'set') {
+    document.getElementById('training').hidden = true;
+    document.getElementById('trainTextContext').hidden = true;
+    document.getElementById('trainText').hidden = true;
+    document.getElementById('botonEntrenar').hidden = true;
+    document.getElementById('botonEntrenarVisual').hidden = true;
     entrenador.startTraining(Number(cantTrain.value), jugadores[3].pos_x, jugadores[3].pos_y);
   }
 }
 
 //Inicializaciones
 createMap();
+grafo = new Grafo(mapa);
 updateMap();

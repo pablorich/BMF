@@ -138,6 +138,7 @@ class Entrenador{
     this.inicio_y = y;
     this.running = 0;
     this.vuelta = 0;
+    disableInput();
     this.setRunning();
   }
 
@@ -152,10 +153,12 @@ class Entrenador{
     this.vuelta +=1;
     if (this.vuelta == this.entrenamientos) {
       this.vuelta = 0;
+      jugadores[this.running].state = 'unset';
+      console.log(this.running + ' finished');
       this.running +=1;
-      console.log(this.running);
       if (this.running > 2) {
         this.trainingMode = false;
+        enableInput();
       }
     }
     this.setRunning();
@@ -167,10 +170,9 @@ const jugadores = [];
 jugadores.push(new Agente('./images/crystal.png', 2.5, 0.3, 1.0, 1.5));//Mombo
 jugadores.push(new Agente('./images/toad.png', 0.3, 2.5, 1.5, 1.0));//Pirolo
 jugadores.push(new Agente('./images/vulture.png', 1.0, 1.5, 2.5, 0.3));//Lucas
-jugadores.push(new Agente('./images/base.png', 1.0, 1.5, 2.5, 0.3));//Test
+jugadores.push(new Agente('./images/base.png', 1.0, 1.0, 1.0, 1.0));//Base
 
 var casa = new Agente('./images/casa.png');
-var jugador = new Agente('./images/hermit.png', 1.0, 1.5, 2.5, 0.3);//Test
 const entrenador = new Entrenador();
 
 //Funcionalidades
@@ -240,7 +242,6 @@ function ajustarMapa(){ //Prepara valores para generar mapa
   porcAgua = Number(sliderAgua.value);
   porcMontes = Number(sliderMontes.value);
   porcBarrancos = Number(sliderBarrancos.value);
-  jugador.state = 'unset';
   casa.state = 'unset';
   for (var i = 0; i < jugadores.length; i++) {
     jugadores[i].state = 'unset';
@@ -320,6 +321,7 @@ function disableInput() {
   document.getElementById('botonAjustar').disabled = true;
   document.getElementById('training').disabled = true;
   document.getElementById('botonEntrenar').disabled = true;
+  document.getElementById('botonEntrenarVisual').disabled = true;
 }
 
 function enableInput(){
@@ -333,6 +335,7 @@ function enableInput(){
   document.getElementById('botonAjustar').disabled = false;
   document.getElementById('training').disabled = false;
   document.getElementById('botonEntrenar').disabled = false;
+  document.getElementById('botonEntrenarVisual').disabled = false;
 }
 
 function ajustarJugador(num){
@@ -401,23 +404,25 @@ function setPlayer(){
 }
 
 function entrenar(){
+  disableInput();
   if (jugadores[3].state == 'set' && casa.state == 'set') {
     for (var i = 0; i < 3; i++) {
-      if (i!=0) {
-        jugadores[i-1].state = 'unset';
-      }
-      jugadores[i].pos_x = jugadores[3].pos_x;
-      jugadores[i].pos_y = jugadores[3].pos_y;
-      jugadores[i].state = 'set';
-      jugadores[i].ultimaPosicion = {x: jugadores[i].pos_x, y: jugadores[i].pos_y};
-      while (!(jugadores[i].pos_x === casa.pos_x && jugadores[i].pos_y === casa.pos_y)) {
-        jugadores[i].moveJugador();
-        if ((jugadores[i].pos_x === casa.pos_x && jugadores[i].pos_y === casa.pos_y)) {
-          console.log("llego un personaje");
+      for (var j = 0; j < Number(cantTrain.value); j++) {
+        jugadores[i].pos_x = jugadores[3].pos_x;
+        jugadores[i].pos_y = jugadores[3].pos_y;
+        jugadores[i].ultimaPosicion = {x: jugadores[i].pos_x, y: jugadores[i].pos_y};
+        while (!(jugadores[i].pos_x === casa.pos_x && jugadores[i].pos_y === casa.pos_y)) {
+          jugadores[i].moveJugador();
+          // console.log(jugadores[i].pos_x, jugadores[i].pos_y);
+          if ((jugadores[i].pos_x === casa.pos_x && jugadores[i].pos_y === casa.pos_y)) {
+            console.log("encontro la casa");
+          }
         }
+        console.log(j);
       }
     }
   }
+  enableInput();
 }
 
 function entrenarVisual(){

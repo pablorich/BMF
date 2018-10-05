@@ -183,6 +183,7 @@ class Entrenador{
   constructor(){
     this.trainingMode = false;
     this.trained = false;
+    this.info = document.getElementById("infoVueltas");
   }
 
   startTraining(num, x, y){
@@ -200,7 +201,22 @@ class Entrenador{
     jugadores[this.running].pos_x = this.inicio_x;
     jugadores[this.running].pos_y = this.inicio_y;
     jugadores[this.running].ultimaPosicion = {x: this.inicio_x, y: this.inicio_y};
+    this.listaVisitado = [];
+    this.sumaRecorrido = 0;
     jugadores[this.running].state = 'set';
+    switch (this.running) {
+      case 0:
+        this.info.innerHTML = "Entrenamiento Mombo: " + this.vuelta + "/" + this.entrenamientos;
+        break;
+      case 1:
+        this.info.innerHTML = "Entrenamiento Pirolo: " + this.vuelta + "/" + this.entrenamientos;
+        break;
+      case 2:
+        this.info.innerHTML = "Entrenamiento Lucas: " + this.vuelta + "/" + this.entrenamientos;
+        break;
+      default:
+
+    }
   }
 
   continueTraining(){
@@ -208,11 +224,11 @@ class Entrenador{
     if (this.vuelta == this.entrenamientos) {
       this.vuelta = 0;
       jugadores[this.running].state = 'unset';
-      console.log(this.running + ' finished');
       this.running +=1;
       if (this.running > 2) {
         this.trainingMode = false;
         this.trained = true;
+        this.info.innerHTML = "";
         document.getElementById('botonMombo').hidden = false;
         document.getElementById('botonLucas').hidden = false;
         document.getElementById('botonPirolo').hidden = false;
@@ -394,8 +410,65 @@ function updateMap(time = 0){
       if (entrenador.running < 3 && entrenador.running >= 0) {
         if (jugadores[entrenador.running].state === 'set' && casa.state === 'set') {
           if (!(jugadores[entrenador.running].pos_x === casa.pos_x && jugadores[entrenador.running].pos_y === casa.pos_y)) {
+            let xProc = jugadores[entrenador.running].pos_x;
+            let yProc = jugadores[entrenador.running].pos_y;
+            let esfuerzo;
+            switch (mapa[xProc][yProc]) {
+              case 0:
+                esfuerzo = jugadores[entrenador.running].afinidadNormal;
+                break;
+              case 2:
+                esfuerzo = jugadores[entrenador.running].afinidadAgua;
+                break;
+              case 3:
+                esfuerzo = jugadores[entrenador.running].afinidadMonte;
+                break;
+              case 4:
+                esfuerzo = jugadores[entrenador.running].afinidadBarranco;
+                break;
+              default:
+                esfuerzo = 0;
+            }
+
             jugadores[entrenador.running].moveJugador();
+
+            let xDest = jugadores[entrenador.running].pos_x;
+            let yDest = jugadores[entrenador.running].pos_y;
+            let flag = false;
+            //Si no se ha pasado por ese arista lo inserta en la lista de visitados
+            for (var f = 0; f < entrenador.listaVisitado.length; f++) {
+              if (xProc == entrenador.listaVisitado[f].xProc && yProc == entrenador.listaVisitado[f].yProc &&
+                xDest == entrenador.listaVisitado[f].xDest && yDest == entrenador.listaVisitado[f].yDest) {
+                  flag = true;
+                  break;
+              }
+            }
+            if (!flag) {//Aqui inserta en la lista de visitados
+              entrenador.sumaRecorrido += esfuerzo;
+              entrenador.listaVisitado.push({
+                xProc: xProc,
+                yProc: yProc,
+                xDest: xDest,
+                yDest: yDest
+              });
+            }
+
             if (jugadores[entrenador.running].pos_x === casa.pos_x && jugadores[entrenador.running].pos_y === casa.pos_y) {
+              //Realiza ajuste
+              if (jugadores[entrenador.running].hasTrained) {
+                let ajuste = jugadores[entrenador.running].calcAjuste(entrenador.sumaRecorrido);
+                for (var z = 0; z < entrenador.listaVisitado.length; z++) {
+                  for (var a = 0; a < grafo.listaAdy[(entrenador.listaVisitado[z].xProc*tamFila)+entrenador.listaVisitado[z].yProc].connections.length; a++) {
+                    if (grafo.listaAdy[(entrenador.listaVisitado[z].xProc*tamFila)+entrenador.listaVisitado[z].yProc].connections[a].x == entrenador.listaVisitado[z].xDest) {
+                      if (grafo.listaAdy[(entrenador.listaVisitado[z].xProc*tamFila)+entrenador.listaVisitado[z].yProc].connections[a].y == entrenador.listaVisitado[z].yDest) {
+                        grafo.listaAdy[(entrenador.listaVisitado[z].xProc*tamFila)+entrenador.listaVisitado[z].yProc].connections[a].pond[entrenador.running] += ajuste;
+                      }
+                    }
+                  }
+                }
+              }
+              jugadores[entrenador.running].updateEsfuerzo(entrenador.sumaRecorrido);
+              //Empieza siguiente vuelta
               entrenador.continueTraining();
             }
           }
